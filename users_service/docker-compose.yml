@@ -20,7 +20,7 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 
   service:
-    container_name: service
+    container_name: users_service
     restart: unless-stopped
     working_dir: /code/src
     command: uvicorn --log-level debug app.main:app --host $APP_HOST --port $APP_PORT --reload

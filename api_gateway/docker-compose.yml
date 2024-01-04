@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+
+  api_gateway_service:
+    container_name: api_gateway_service
+    restart: unless-stopped
+    working_dir: /code/src
+    command: uvicorn --log-level debug app.main:app --host $APP_HOST --port $APP_PORT --reload
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - APP_HOST=${APP_HOST}
+      - APP_PORT=${APP_PORT}
+      - LOGGING_LEVEL=${LOGGING_LEVEL}
+      - PYTHONPATH=${PYTHONPATH}
+      - SERVER_DEBUG=${SERVER_DEBUG}
+      - USERS_SERVICE_URL=${USERS_SERVICE_URL}
+      - SOME_SERVICE_URL=${SOME_SERVICE_URL}
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    volumes:
+      - ./src:/code/src
+

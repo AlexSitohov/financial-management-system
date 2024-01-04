@@ -13,6 +13,13 @@ async def _serialize_list(cursor: AsyncIOMotorCursor):
 
 
 def mongo_serializer(func):
+    """
+    A MongoDB deSerializer.
+    deSerialize bson objects to python dicts.
+    Serialize string to bson ObjectId.
+    В будущем переписать с использованием pydantic, для исключения лишней сериализации.
+    """
+
     @wraps(func)
     async def wrapper_serialize(repo_instance, *args, **kwargs):
         async with await repo_instance.mongo_client.start_session() as session:
