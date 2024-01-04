@@ -18,7 +18,7 @@ class UsersRepository:
     async def create_one(self, zxc_dto: UsersModel.CREATE, **kwargs):
         session = kwargs.get("session")
         inserted_id = (
-            await self.collection.insert_one(document=zxc_dto.dict(), session=session)
+            await self.collection.insert_one(document=zxc_dto.dict(exclude_none=True), session=session)
         ).inserted_id
         return await self.collection.find_one(
             filter={"_id": inserted_id}, session=session
@@ -46,3 +46,12 @@ class UsersRepository:
         return await self.collection.find_one(
             filter={"_id": oid, "deleted": {"$ne": True}}, session=session
         )
+
+    @mongo_serializer
+    async def login(self, user_dto: UsersModel.LOGIN, **kwargs):
+        session = kwargs.get("session")
+        user = await self.collection.find_one(
+            filter={"email": user_dto.email, "deleted": {"$ne": True}}, session=session
+        )
+        if user["password"] == user_dto.password:
+            return user

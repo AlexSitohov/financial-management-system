@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -9,7 +8,10 @@ class UsersModel:
         first_name: str
         last_name: str
         email: str
+        password: str
         birthday_date: datetime
+        salary: str | None
+        spending_limit: str | None
 
         class Config:
             from_attribute = True
@@ -19,3 +21,7 @@ class UsersModel:
 
     class CREATE(Base):
         ...
+
+    class LOGIN(BaseModel):
+        email: str
+        password: str

@@ -37,3 +37,12 @@ async def find_one(
         users_repository: UsersRepository = Depends(provide_users_repository_stub),
 ):
     return await users_repository.find_one(user_id)
+
+
+@users_router.post("/login", status_code=200)
+async def login(
+        user_dto: UsersModel.LOGIN,
+        users_repository: UsersRepository = Depends(provide_users_repository_stub),
+):
+    return await users_repository.login(user_dto)
+
