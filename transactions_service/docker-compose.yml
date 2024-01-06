@@ -8,6 +8,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      - shared_network
 
   mongo-express:
     image: mongo-express
@@ -19,8 +21,12 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 
+
+    networks:
+      - shared_network
+
   service:
-    container_name: some_service
+    container_name: transactions_service
     restart: unless-stopped
     working_dir: /code/src
     command: uvicorn --log-level debug app.main:app --host $APP_HOST --port $APP_PORT --reload
@@ -44,3 +50,9 @@ services:
     volumes:
       - ./src:/code/src
 
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
+    external: true

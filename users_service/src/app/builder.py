@@ -32,7 +32,9 @@ class Application:
         self.users_repository = lambda: provide_users_repository(self.mongo_client)
 
     def _override_dependencies(self):
-        self.app.dependency_overrides[provide_users_repository_stub] = self.users_repository
+        self.app.dependency_overrides[
+            provide_users_repository_stub
+        ] = self.users_repository
 
     def _add_routes(self):
         self.app.include_router(users_router)

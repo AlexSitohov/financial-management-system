@@ -1,6 +1,7 @@
-../.idea
+../.idea/
 /.idea
-.idea
+.idea/
+./.idea/
 .ipynb_checkpoints
 .mypy_cache
 .vscode
@@ -16,7 +17,7 @@ test.db
 log.txt
 Pipfile.lock
 env3.*
-env
+wenv
 docs_build
 venv
 docs.zip
@@ -26,5 +27,6 @@ archive.zip
 *~
 .*.sw?
 
-#.env
+#.wenv
 */.env
+.idea/mongodb.iml

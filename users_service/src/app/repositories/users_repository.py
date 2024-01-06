@@ -1,10 +1,13 @@
 from bson import ObjectId
+from fastapi import HTTPException
 
 from app.core.config import mongo_db_name, mongo_collection_name
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.dblayer.serializer import mongo_serializer
+
+from app.core.hash import hash_password, verify_password
 from app.models.users_model import UsersModel
 
 
@@ -15,10 +18,13 @@ class UsersRepository:
         self.collection = self.database.get_collection(mongo_collection_name)
 
     @mongo_serializer
-    async def create_one(self, zxc_dto: UsersModel.CREATE, **kwargs):
+    async def create_one(self, user_dto: UsersModel.CREATE, **kwargs):
         session = kwargs.get("session")
+        user_dto.password = await hash_password(user_dto.password)
         inserted_id = (
-            await self.collection.insert_one(document=zxc_dto.dict(exclude_none=True), session=session)
+            await self.collection.insert_one(
+                document=user_dto.dict(exclude_none=True), session=session
+            )
         ).inserted_id
         return await self.collection.find_one(
             filter={"_id": inserted_id}, session=session
@@ -53,5 +59,6 @@ class UsersRepository:
         user = await self.collection.find_one(
             filter={"email": user_dto.email, "deleted": {"$ne": True}}, session=session
         )
-        if user["password"] == user_dto.password:
-            return user
+        if not await verify_password(user_dto.password, user["password"]):
+            raise HTTPException(status_code=400, detail="Неверный логин или пароль")
+        return user

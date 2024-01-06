@@ -8,5 +8,5 @@ export LOGGING_LEVEL=10
 export SERVER_DEBUG=True
 
 export USERS_SERVICE_URL='http://host.docker.internal:8001'
-export SOME_SERVICE_URL='http://host.docker.internal:8002'
+export TRANSACTIONS_SERVICE_URL='http://host.docker.internal:8002'
 

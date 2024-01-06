@@ -3,12 +3,15 @@ from fastapi.responses import ORJSONResponse
 
 from app.api_clients.providers import provide_users_client
 from app.handlers.providers import provide_bff_handler, provide_no_jwt_handler
-from app.middlewares.jwt import JWTMiddleware
 from app.services.providers import provide_jwt_service
+
+from app.middlewares.jwt import jwt_middleware
 
 
 class Application:
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         self.app = self._setup_app()
         self.create_clients()
         self.create_services()
@@ -28,20 +31,27 @@ class Application:
     def create_services(self):
         self.jwt_service = provide_jwt_service()
 
+    def create_middleware(self):
+        self.app.middleware("http")(jwt_middleware)
+
     def add_other_services(self):
         bff_handler = provide_bff_handler()
         jwt_service = provide_jwt_service()
         no_jwt_handler = provide_no_jwt_handler(jwt_service)
-        self.app.add_route("/users/api/v1/login", no_jwt_handler.login, methods=["POST"])
-
         self.app.add_route(
-            "/{tail:path}", bff_handler.reroute_to_appropriate_service, methods=["GET", "POST", "PUT", "DELETE"]
+            "/users/api/v1/registration", no_jwt_handler.registration, methods=["POST"]
+        )
+        self.app.add_route(
+            "/users/api/v1/login", no_jwt_handler.login, methods=["POST"]
         )
 
-    def create_middleware(self):
-        self.app.add_middleware(JWTMiddleware)
+        self.app.add_route(
+            "/{tail:path}",
+            bff_handler.reroute_to_appropriate_service,
+            methods=["GET", "POST", "PUT", "DELETE"],
+        )
 
     def build_application(self) -> FastAPI:
-        self.add_other_services()
         self.create_middleware()
+        self.add_other_services()
         return self.app

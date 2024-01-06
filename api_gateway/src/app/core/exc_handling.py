@@ -19,7 +19,9 @@ def jwt_exception_handler(request, exc: exceptions.JWTException) -> JSONResponse
     )
 
 
-def no_permission_exception_handler(request, exc: exceptions.NoPermissionException) -> JSONResponse:
+def no_permission_exception_handler(
+    request, exc: exceptions.NoPermissionException
+) -> JSONResponse:
     msg = {
         "Message": f"User has no permission to access {request.url.path}",
         "Details": exc.details,
@@ -35,7 +37,9 @@ def no_permission_exception_handler(request, exc: exceptions.NoPermissionExcepti
     )
 
 
-def not_authorized_exception_handler(request, exc: exceptions.NotAuthorizedException) -> JSONResponse:
+def not_authorized_exception_handler(
+    request, exc: exceptions.NotAuthorizedException
+) -> JSONResponse:
     msg = {
         "Message": f"User {request.headers['x-telematix-login']} has not authorized",
         "Details": exc.details,
@@ -50,7 +54,9 @@ def not_authorized_exception_handler(request, exc: exceptions.NotAuthorizedExcep
     )
 
 
-def bad_request_exception_handler(request, exc: exceptions.BadRequestException) -> JSONResponse:
+def bad_request_exception_handler(
+    request, exc: exceptions.BadRequestException
+) -> JSONResponse:
     msg = {"Message": exc.message, "Details": exc.details}
     logging.error(msg)
 
@@ -63,7 +69,9 @@ def bad_request_exception_handler(request, exc: exceptions.BadRequestException) 
     )
 
 
-def conflict_exception_handler(request, exc: exceptions.ConflictException) -> JSONResponse:
+def conflict_exception_handler(
+    request, exc: exceptions.ConflictException
+) -> JSONResponse:
     msg = {"Message": exc.message, "Details": exc.details}
     logging.error(msg)
 
@@ -76,7 +84,9 @@ def conflict_exception_handler(request, exc: exceptions.ConflictException) -> JS
     )
 
 
-def not_found_exception_handler(request, exc: exceptions.NotFoundException) -> JSONResponse:
+def not_found_exception_handler(
+    request, exc: exceptions.NotFoundException
+) -> JSONResponse:
     msg = {"Message": exc.message, "Details": exc.details}
     logging.error(msg)
 
@@ -89,7 +99,9 @@ def not_found_exception_handler(request, exc: exceptions.NotFoundException) -> J
     )
 
 
-def no_internal_service_exception_handler(request, exc: exceptions.NoInternalServiceException) -> JSONResponse:
+def no_internal_service_exception_handler(
+    request, exc: exceptions.NoInternalServiceException
+) -> JSONResponse:
     msg = {"Message": exc.message, "Details": exc.details}
     logging.error(msg)
 
@@ -102,7 +114,9 @@ def no_internal_service_exception_handler(request, exc: exceptions.NoInternalSer
     )
 
 
-def unexpected_server_exception_handler(request, exc: exceptions.UnexpectedServerException) -> JSONResponse:
+def unexpected_server_exception_handler(
+    request, exc: exceptions.UnexpectedServerException
+) -> JSONResponse:
     msg = {"Message": exc.message, "Details": exc.details}
     logging.error(msg)
 
@@ -115,7 +129,9 @@ def unexpected_server_exception_handler(request, exc: exceptions.UnexpectedServe
     )
 
 
-def service_unavailable_exception_handler(request, exc: exceptions.ServiceUnavailableException) -> JSONResponse:
+def service_unavailable_exception_handler(
+    request, exc: exceptions.ServiceUnavailableException
+) -> JSONResponse:
     msg = {"Message": exc.message, "Details": exc.details}
     logging.error(msg)
 
@@ -128,11 +144,15 @@ def service_unavailable_exception_handler(request, exc: exceptions.ServiceUnavai
     )
 
 
-def request_validation_error_exception_handler(request, exc: RequestValidationError) -> JSONResponse:
+def request_validation_error_exception_handler(
+    request, exc: RequestValidationError
+) -> JSONResponse:
     errors = []
     for error in exc.errors():
         field = ".".join(str(x) for x in error["loc"])
         message = error["msg"]
         errors.append({"field": field, "message": message})
 
-    return bad_request_exception_handler(request, exceptions.BadRequestException(details=errors))
+    return bad_request_exception_handler(
+        request, exceptions.BadRequestException(details=errors)
+    )

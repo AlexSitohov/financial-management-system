@@ -9,16 +9,10 @@ class JWTService:
         self.secret_key = secret_key
         self.algorithm = algorithm
 
-    def create_access_token(
-            self, user_id, user_email
-    ) -> str:
+    def create_access_token(self, user_id, user_email) -> str:
         expire = datetime.utcnow() + timedelta(minutes=int(10000))
         return jwt.encode(
-            {
-                "user_id": user_id,
-                "user_email": user_email,
-                'exp': expire
-            },
+            {"user_id": user_id, "user_email": user_email, "exp": expire},
             self.secret_key,
             self.algorithm,
         )

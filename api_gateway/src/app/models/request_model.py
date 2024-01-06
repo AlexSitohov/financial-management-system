@@ -18,3 +18,4 @@ class RequestDTO(BaseModel):
     url: str
     data: bytes | None
     cookies: dict | None
+    headers: dict | None

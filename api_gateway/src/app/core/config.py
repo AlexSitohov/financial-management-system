@@ -16,6 +16,7 @@ class BFFConfig:
 
 DOMAIN_MAPPER = {
     "users": os.environ["USERS_SERVICE_URL"],
+    "transactions": os.environ["TRANSACTIONS_SERVICE_URL"],
 }
 
 jwt_settings = JWTSettings()

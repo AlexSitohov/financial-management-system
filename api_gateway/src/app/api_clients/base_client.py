@@ -36,7 +36,9 @@ class BaseHTTPClient:
             return response.json()
 
     @http_exc_handler
-    async def get_raw(self, endpoint: str, on_404: Any = None, **kwargs) -> httpx.Response:
+    async def get_raw(
+        self, endpoint: str, on_404: Any = None, **kwargs
+    ) -> httpx.Response:
         async with httpx.AsyncClient(timeout=600) as client:
             response = await client.get(f"{self.base_url}{endpoint}", **kwargs)
 

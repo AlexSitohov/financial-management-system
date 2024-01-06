@@ -4,10 +4,10 @@ from fastapi import FastAPI
 
 from app.core.config import db_config
 from app.dblayer.connection import get_mongo_client
-from app.handlers.v1.zxc import zxc_router
+from app.handlers.v1.transactions import transactions_router
 from app.repositories.providers import (
-    provide_zxc_repository,
-    provide_zxc_repository_stub,
+    provide_transactions_repository,
+    provide_transactions_repository_stub,
 )
 
 
@@ -19,23 +19,27 @@ class Application:
     @staticmethod
     def _setup_app() -> FastAPI:
         return FastAPI(
-            title="zxc API",
-            docs_url="/zxc/api/docs",
-            redoc_url="/zxc/api/redoc",
-            openapi_url="/zxc/api/openapi.json",
+            title="Transactions API",
+            docs_url="/transactions/api/docs",
+            redoc_url="/transactions/api/redoc",
+            openapi_url="/transactions/api/openapi.json",
         )
 
     def _connect_to_mongo(self):
         self.mongo_client = get_mongo_client(db_config)
 
     def _create_repositories(self):
-        self.zxc_repository = lambda: provide_zxc_repository(self.mongo_client)
+        self.transactions_repository = lambda: provide_transactions_repository(
+            self.mongo_client
+        )
 
     def _override_dependencies(self):
-        self.app.dependency_overrides[provide_zxc_repository_stub] = self.zxc_repository
+        self.app.dependency_overrides[
+            provide_transactions_repository_stub
+        ] = self.transactions_repository
 
     def _add_routes(self):
-        self.app.include_router(zxc_router)
+        self.app.include_router(transactions_router)
 
     @staticmethod
     def _configure_logging():

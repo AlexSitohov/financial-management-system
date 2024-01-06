@@ -31,13 +31,19 @@ def http_exc_handler(func) -> callable:
 
             match status_code:
                 case 400:
-                    raise exceptions.BadRequestException(details=details, message=message)
+                    raise exceptions.BadRequestException(
+                        details=details, message=message
+                    )
                 case 403:
-                    raise exceptions.NoPermissionException(details=details, message=message)
+                    raise exceptions.NoPermissionException(
+                        details=details, message=message
+                    )
                 case 404:
                     raise exceptions.NotFoundException(details=details, message=message)
                 case _:
-                    raise exceptions.UnexpectedServerException(details=details, message=message)
+                    raise exceptions.UnexpectedServerException(
+                        details=details, message=message
+                    )
             # Обработка других кодов ошибок
 
         except httpx.ConnectError as e:
