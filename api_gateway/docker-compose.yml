@@ -24,3 +24,13 @@ services:
     volumes:
       - ./src:/code/src
 
+
+  nginx_service:
+      image: nginx:latest
+      container_name: nginx_service
+      ports:
+        - "80:80"
+      volumes:
+        - ./nginx:/etc/nginx/conf.d
+      depends_on:
+        - api_gateway_service

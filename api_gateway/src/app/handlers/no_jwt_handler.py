@@ -1,6 +1,6 @@
 import logging
 
-from jose import jwt
+from fastapi.encoders import jsonable_encoder
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from httpx import AsyncClient
@@ -42,13 +42,13 @@ class NoJWTHandler:
         body = await request.json()
         try:
             user = UsersModel.REGISTRATION(**body)
-
+            user_data = jsonable_encoder(user)
         except ValidationError:
             return Response(status_code=400)
 
         async with AsyncClient(timeout=600) as client:
             response = await client.post(
-                f"{url}/users/api/v1/registration", json=user.dict()
+                f"{url}/users/api/v1/registration", json=user_data
             )
         if response.status_code != 200:
             return Response(content=response.text, status_code=response.status_code)

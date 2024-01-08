@@ -18,46 +18,42 @@ class UsersRepository:
         self.collection = self.database.get_collection(mongo_collection_name)
 
     @mongo_serializer
-    async def create_one(self, user_dto: UsersModel.CREATE, **kwargs):
-        session = kwargs.get("session")
-        user_dto.password = await hash_password(user_dto.password)
-        inserted_id = (
-            await self.collection.insert_one(
-                document=user_dto.dict(exclude_none=True), session=session
+    async def create_one(self, user_dto: UsersModel.CREATE):
+        async with await self.mongo_client.start_session() as session:
+            user_dto.password = await hash_password(user_dto.password)
+            inserted_id = (
+                await self.collection.insert_one(
+                    document=user_dto.dict(exclude_none=True), session=session
+                )
+            ).inserted_id
+            return await self.collection.find_one(
+                filter={"_id": inserted_id}, session=session
             )
-        ).inserted_id
-        return await self.collection.find_one(
-            filter={"_id": inserted_id}, session=session
+
+    @mongo_serializer
+    async def find_all(self, limit: int, skip: int):
+        return (
+            self.collection.find(filter={"deleted": {"$ne": True}})
+            .limit(limit)
+            .skip(skip)
         )
 
     @mongo_serializer
-    async def find_all(self, limit: int, **kwargs):
-        session = kwargs.get("session")
-        return self.collection.find(
-            filter={"deleted": {"$ne": True}}, session=session
-        ).limit(limit)
-
-    @mongo_serializer
-    async def delete_one(self, oid: ObjectId, **kwargs):
-        session = kwargs.get("session")
+    async def delete_one(self, oid: ObjectId):
         await self.collection.update_one(
-            filter={"_id": oid},
-            update={"$set": {"deleted": True}},
-            session=session,
+            filter={"_id": oid}, update={"$set": {"deleted": True}}
         )
 
     @mongo_serializer
     async def find_one(self, oid: ObjectId, **kwargs):
-        session = kwargs.get("session")
         return await self.collection.find_one(
-            filter={"_id": oid, "deleted": {"$ne": True}}, session=session
+            filter={"_id": oid, "deleted": {"$ne": True}}
         )
 
     @mongo_serializer
     async def login(self, user_dto: UsersModel.LOGIN, **kwargs):
-        session = kwargs.get("session")
         user = await self.collection.find_one(
-            filter={"email": user_dto.email, "deleted": {"$ne": True}}, session=session
+            filter={"email": user_dto.email, "deleted": {"$ne": True}}
         )
         if not await verify_password(user_dto.password, user["password"]):
             raise HTTPException(status_code=400, detail="Неверный логин или пароль")

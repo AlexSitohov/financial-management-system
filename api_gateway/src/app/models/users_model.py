@@ -10,8 +10,8 @@ class UsersModel:
         email: str
         password: str
         birthday_date: datetime | None = None
-        salary: str | None = None
-        spending_limit: str | None = None
+        salary: float | None = None
+        spending_limit: float | None = None
 
         class Config:
             from_attribute = True
