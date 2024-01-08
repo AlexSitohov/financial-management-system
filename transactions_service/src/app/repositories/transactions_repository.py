@@ -21,34 +21,53 @@ class TransactionsRepository:
         transactions_dto = transactions_dto.dict(exclude_none=True)
         transactions_dto["user_id"] = user_id
         async with await self.mongo_client.start_session() as session:
-            inserted_id = (
+            transaction_id = (
                 await self.collection.insert_one(
                     document=transactions_dto, session=session
                 )
             ).inserted_id
             return await self.collection.find_one(
-                filter={"_id": inserted_id}, session=session
+                filter={"_id": transaction_id}, session=session
             )
 
     @mongo_serializer
     async def find_all(self, user_id: ObjectId, limit: int, skip: int):
         return (
             self.collection.find(
-                filter={"$and": [{"user_id": user_id}, {"deleted": {"$ne": True}}]}
+                filter=(
+                    {
+                        "$and": [
+                            {"user_id": user_id},
+                            {"deleted": {"$ne": True}},
+                        ]
+                    }
+                )
             )
             .limit(limit)
             .skip(skip)
         )
 
     @mongo_serializer
-    async def delete_one(self, oid: ObjectId):
+    async def delete_one(self, transaction_id: ObjectId, user_id: ObjectId):
         await self.collection.update_one(
-            filter={"_id": oid},
+            filter={
+                "$and": [
+                    {"_id": transaction_id},
+                    {"user_id": user_id},
+                    {"deleted": {"$ne": True}},
+                ]
+            },
             update={"$set": {"deleted": True}},
         )
 
     @mongo_serializer
-    async def find_one(self, oid: ObjectId):
+    async def find_one(self, transaction_id: ObjectId, user_id: ObjectId):
         return await self.collection.find_one(
-            filter={"_id": oid, "deleted": {"$ne": True}}
+            filter={
+                "$and": [
+                    {"_id": transaction_id},
+                    {"user_id": user_id},
+                    {"deleted": {"$ne": True}},
+                ]
+            },
         )

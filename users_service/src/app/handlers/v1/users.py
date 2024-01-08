@@ -24,7 +24,7 @@ async def find_all(
     skip: int = 0,
     users_repository: UsersRepository = Depends(provide_users_repository_stub),
 ):
-    return await users_repository.find_all(limit=limit, skip=skip)
+    return await users_repository.find_all(limit, skip)
 
 
 @users_router.delete("/user/{user_id}", status_code=204)

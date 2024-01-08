@@ -30,26 +30,26 @@ async def find_all(
         provide_transactions_repository_stub
     ),
 ):
-    return await transactions_repository.find_all(
-        user_id=user_id, limit=limit, skip=skip
-    )
+    return await transactions_repository.find_all(user_id, limit, skip)
 
 
 @transactions_router.delete("/transaction/{transaction_id}", status_code=204)
 async def delete_one(
     transaction_id: ObjectId = Depends(validate_object_id),
+    user_id: ObjectId = Depends(get_object_id_from_header),
     transactions_repository: TransactionsRepository = Depends(
         provide_transactions_repository_stub
     ),
 ):
-    await transactions_repository.delete_one(transaction_id)
+    await transactions_repository.delete_one(transaction_id, user_id)
 
 
 @transactions_router.get("/transaction/{transaction_id}")
 async def find_one(
     transaction_id: ObjectId = Depends(validate_object_id),
+    user_id: ObjectId = Depends(get_object_id_from_header),
     transactions_repository: TransactionsRepository = Depends(
         provide_transactions_repository_stub
     ),
 ):
-    return await transactions_repository.find_one(transaction_id)
+    return await transactions_repository.find_one(transaction_id, user_id)

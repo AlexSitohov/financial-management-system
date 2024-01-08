@@ -39,22 +39,40 @@ class UsersRepository:
         )
 
     @mongo_serializer
-    async def delete_one(self, oid: ObjectId):
+    async def delete_one(self, user_id: ObjectId):
         await self.collection.update_one(
-            filter={"_id": oid}, update={"$set": {"deleted": True}}
+            filter=(
+                {
+                    "$and": [
+                        {"_id": user_id},
+                        {"deleted": {"$ne": True}},
+                    ]
+                }
+            ),
+            update={"$set": {"deleted": True}},
         )
 
     @mongo_serializer
-    async def find_one(self, oid: ObjectId, **kwargs):
+    async def find_one(self, user_id: ObjectId):
         return await self.collection.find_one(
-            filter={"_id": oid, "deleted": {"$ne": True}}
+            filter=(
+                {
+                    "$and": [
+                        {"_id": user_id},
+                        {"deleted": {"$ne": True}},
+                    ]
+                }
+            )
         )
 
     @mongo_serializer
-    async def login(self, user_dto: UsersModel.LOGIN, **kwargs):
+    async def login(self, user_dto: UsersModel.LOGIN):
         user = await self.collection.find_one(
-            filter={"email": user_dto.email, "deleted": {"$ne": True}}
+            filter={"email": user_dto.email, "deleted": {"$ne": True}},
+            projection={"password": 1, "_id": 1, "email": 1},
         )
-        if not await verify_password(user_dto.password, user["password"]):
+        if user is None or not await verify_password(
+            user_dto.password, user["password"]
+        ):
             raise HTTPException(status_code=400, detail="Неверный логин или пароль")
         return user
