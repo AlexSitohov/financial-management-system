@@ -7,7 +7,7 @@ from app.core import exceptions
 
 
 def jwt_exception_handler(request, exc: exceptions.JWTException) -> JSONResponse:
-    msg = {"Message": f"This token is not valid", "Details": exc.details}
+    msg = {"Message": "This token is not valid", "Details": exc.details}
     logging.error(msg)
 
     return JSONResponse(

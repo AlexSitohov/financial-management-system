@@ -21,5 +21,5 @@ class ObjectIdToString(str):
     @classmethod
     def validate(cls, value):
         if not ObjectId.is_valid(value):
-            raise ValueError(f"Invalid ObjectId")
+            raise ValueError("Invalid ObjectId")
         return str(ObjectId(value))

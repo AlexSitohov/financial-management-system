@@ -12,15 +12,6 @@ class BaseHTTPClient:
 
     @http_exc_handler
     async def get(self, endpoint: str, on_404: Any = None, **kwargs) -> dict | Any:
-        """
-        Выполняет HTTP GET запрос к указанному `endpoint` и возвращает JSON-ответ.
-
-        Args:
-            endpoint (str): Оконечная точка (URL) для выполнения GET запроса.
-            on_404 (Any, optional): Значение, которое будет возвращено, если получен код ответа 404 (Not Found). По умолчанию None.
-            **kwargs: Дополнительные аргументы, передаваемые в метод `client_session.get()`.
-        """
-
         async with httpx.AsyncClient(timeout=600) as client:
             response = await client.get(f"{self.base_url}{endpoint}", **kwargs)
 
