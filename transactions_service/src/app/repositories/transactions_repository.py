@@ -7,10 +7,17 @@ from app.dblayer.serializer import mongo_serializer
 
 from app.models.transaction_model import TransactionModel
 
+from app.daos.transactions_dao import TransactionsDAO
+
+from app.dblayer.enums import ItemsCategory
+
 
 class TransactionsRepository:
-    def __init__(self, mongo_client: AsyncIOMotorClient):
+    def __init__(
+        self, mongo_client: AsyncIOMotorClient, transactions_dao: TransactionsDAO
+    ):
         self.mongo_client = mongo_client
+        self.transactions_dao = transactions_dao
         self.database = mongo_client.get_database(mongo_db_name)
         self.collection = self.database.get_collection(mongo_collection_name)
 
@@ -31,21 +38,15 @@ class TransactionsRepository:
             )
 
     @mongo_serializer
-    async def find_all(self, user_id: ObjectId, limit: int, skip: int):
-        return (
-            self.collection.find(
-                filter=(
-                    {
-                        "$and": [
-                            {"user_id": user_id},
-                            {"deleted": {"$ne": True}},
-                        ]
-                    }
-                )
+    async def find_all(
+        self, user_id: ObjectId, category: ItemsCategory | None, limit: int, skip: int
+    ):
+        if category:
+            return await self.transactions_dao.category_pipline_filter(
+                user_id, category, limit, skip
             )
-            .limit(limit)
-            .skip(skip)
-        )
+
+        return await self.transactions_dao.find_all(user_id, limit, skip)
 
     @mongo_serializer
     async def delete_one(self, transaction_id: ObjectId, user_id: ObjectId):

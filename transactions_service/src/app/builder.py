@@ -10,6 +10,8 @@ from app.repositories.providers import (
     provide_transactions_repository_stub,
 )
 
+from app.daos.providers import provide_transactions_dao
+
 
 class Application:
     def __init__(self):
@@ -28,9 +30,12 @@ class Application:
     def _connect_to_mongo(self):
         self.mongo_client = get_mongo_client(db_config)
 
+    def _create_daos(self):
+        self.transactions_dao = provide_transactions_dao(self.mongo_client)
+
     def _create_repositories(self):
         self.transactions_repository = lambda: provide_transactions_repository(
-            self.mongo_client
+            self.mongo_client, self.transactions_dao
         )
 
     def _override_dependencies(self):
@@ -49,6 +54,7 @@ class Application:
 
     def build_application(self):
         self._connect_to_mongo()
+        self._create_daos()
         self._create_repositories()
         self._override_dependencies()
         self._add_routes()

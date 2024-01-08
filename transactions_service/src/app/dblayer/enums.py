@@ -16,4 +16,9 @@ class ProductCategory(Enum):
 class ServiceCategory(Enum):
     TAXI = "TAXI"
     HAIRCUT = "HAIRCUT"
-    MEDICAL_CHECKUP = "MEDICAL CHECKUP"
+    MEDICAL_CHECKUP = "MEDICAL_CHECKUP"
+
+
+ItemsCategory = Enum(
+    "ItemsCategory", {**ProductCategory.__members__, **ServiceCategory.__members__}
+)

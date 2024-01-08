@@ -3,9 +3,13 @@ from fastapi import APIRouter, Depends, Query
 from app.repositories.providers import provide_transactions_repository_stub
 from app.repositories.transactions_repository import TransactionsRepository
 
-from app.dblayer.serializer import get_object_id_from_header, validate_object_id
+from app.dependencies import get_object_id_from_header, validate_object_id
 
 from app.models.transaction_model import TransactionModel
+
+from app.dblayer.enums import ItemsCategory
+
+from app.dependencies import get_item_category
 
 transactions_router = APIRouter(tags=["Transactions"], prefix="/transactions/api/v1")
 
@@ -24,13 +28,14 @@ async def create_one(
 @transactions_router.get("/transactions")
 async def find_all(
     user_id: ObjectId = Depends(get_object_id_from_header),
+    category: ItemsCategory | None = Depends(get_item_category),
     limit: int = Query(default=5, gt=0, lt=101),
-    skip: int = 0,
+    skip: int = Query(default=0),
     transactions_repository: TransactionsRepository = Depends(
         provide_transactions_repository_stub
     ),
 ):
-    return await transactions_repository.find_all(user_id, limit, skip)
+    return await transactions_repository.find_all(user_id, category, limit, skip)
 
 
 @transactions_router.delete("/transaction/{transaction_id}", status_code=204)

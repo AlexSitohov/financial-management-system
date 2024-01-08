@@ -11,11 +11,11 @@ users_router = APIRouter(tags=["users"], prefix="/users/api/v1")
 
 
 @users_router.post("/registration", status_code=201)
-async def registration(
+async def register(
     user_dto: UsersModel.CREATE,
     users_repository: UsersRepository = Depends(provide_users_repository_stub),
 ):
-    return await users_repository.create_one(user_dto)
+    return await users_repository.register(user_dto)
 
 
 @users_router.get("/users")

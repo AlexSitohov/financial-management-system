@@ -18,7 +18,7 @@ class UsersRepository:
         self.collection = self.database.get_collection(mongo_collection_name)
 
     @mongo_serializer
-    async def create_one(self, user_dto: UsersModel.CREATE):
+    async def register(self, user_dto: UsersModel.CREATE):
         async with await self.mongo_client.start_session() as session:
             user_dto.password = await hash_password(user_dto.password)
             inserted_id = (
