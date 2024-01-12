@@ -12,21 +12,52 @@ class TransactionsDAO:
         self.database = mongo_client.get_database(mongo_db_name)
         self.collection = self.database.get_collection(mongo_collection_name)
 
+    # async def find_all(self, user_id: ObjectId, limit: int, skip: int):
+    #     return (
+    #         self.collection.find(
+    #             filter=(
+    #                 {
+    #                     "$and": [
+    #                         {"user_id": user_id},
+    #                         {"deleted": {"$ne": True}},
+    #                     ]
+    #                 }
+    #             ),
+    #         )
+    #         .limit(limit)
+    #         .skip(skip)
+    #     )
+
     async def find_all(self, user_id: ObjectId, limit: int, skip: int):
-        return (
-            self.collection.find(
-                filter=(
-                    {
-                        "$and": [
-                            {"user_id": user_id},
-                            {"deleted": {"$ne": True}},
-                        ]
-                    }
-                )
-            )
-            .limit(limit)
-            .skip(skip)
-        )
+        pipeline = [
+            {
+                "$match": {
+                    "user_id": user_id,
+                    "deleted": {"$ne": True},
+                }
+            },
+            {"$unwind": "$items"},
+            {
+                "$group": {
+                    "_id": "$_id",
+                    "transaction_date": {"$first": "$transaction_date"},
+                    "items": {"$push": "$items"},
+                    "totalAmount": {
+                        "$sum": {
+                            "$multiply": [
+                                "$items.price",
+                                {"$ifNull": ["$items.qty", 1]},
+                            ]
+                        }
+                    },
+                    "count": {"$sum": 1},
+                    "user_id": {"$first": "$user_id"},
+                }
+            },
+            {"$skip": skip},
+            {"$limit": limit},
+        ]
+        return await self.collection.aggregate(pipeline).to_list(length=None)
 
     async def category_pipline_filter(
         self, user_id: ObjectId, category: ItemsCategory, limit: int, skip: int
@@ -46,6 +77,15 @@ class TransactionsDAO:
                     "_id": "$_id",
                     "transaction_date": {"$first": "$transaction_date"},
                     "items": {"$push": "$items"},
+                    "totalAmount": {
+                        "$sum": {
+                            "$multiply": [
+                                "$items.price",
+                                {"$ifNull": ["$items.qty", 1]},
+                            ]
+                        }
+                    },
+                    "count": {"$sum": 1},
                     "user_id": {"$first": "$user_id"},
                 }
             },
