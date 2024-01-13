@@ -43,12 +43,7 @@ class TransactionsRepository:
     async def find_all(
         self, user_id: ObjectId, category: ItemsCategory | None, limit: int, skip: int
     ):
-        if category:
-            return await self.transactions_dao.category_pipline_filter(
-                user_id, category, limit, skip
-            )
-
-        return await self.transactions_dao.find_all(user_id, limit, skip)
+        return await self.transactions_dao.find_all(user_id, category, limit, skip)
 
     @mongo_serializer
     async def delete_one(self, transaction_id: ObjectId, user_id: ObjectId):

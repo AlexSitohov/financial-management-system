@@ -14,50 +14,22 @@ class TransactionsDAO:
         self.database = mongo_client.get_database(mongo_db_name)
         self.collection = self.database.get_collection(mongo_collection_name)
 
-    async def find_all(self, user_id: ObjectId, limit: int, skip: int):
-        pipeline = [
-            {
-                "$match": {
-                    "user_id": user_id,
-                    "deleted": {"$ne": True},
-                }
-            },
-            {"$unwind": "$items"},
-            {
-                "$group": {
-                    "_id": "$_id",
-                    "transaction_date": {"$first": "$transaction_date"},
-                    "items": {"$push": "$items"},
-                    "totalAmount": {
-                        "$sum": {
-                            "$multiply": [
-                                "$items.price",
-                                {"$ifNull": ["$items.qty", 1]},
-                            ]
-                        }
-                    },
-                    "count": {"$sum": 1},
-                    "user_id": {"$first": "$user_id"},
-                }
-            },
-            {"$skip": skip},
-            {"$limit": limit},
-        ]
-        return await self.collection.aggregate(pipeline).to_list(length=None)
-
-    async def category_pipline_filter(
-        self, user_id: ObjectId, category: ItemsCategory, limit: int, skip: int
+    async def find_all(
+        self,
+        user_id: ObjectId,
+        category: ItemsCategory | None,
+        limit: int,
+        skip: int,
     ):
+        match_stage = {"user_id": user_id, "deleted": {"$ne": True}}
+
+        if category:
+            match_stage["items.category"] = category
+
         pipeline = [
-            {
-                "$match": {
-                    "user_id": user_id,
-                    "deleted": {"$ne": True},
-                    "items.category": category,
-                }
-            },
+            {"$match": match_stage},
             {"$unwind": "$items"},
-            {"$match": {"items.category": category}},
+            {"$match": {"items.category": category}} if category else {"$match": {}},
             {
                 "$group": {
                     "_id": "$_id",
@@ -75,14 +47,17 @@ class TransactionsDAO:
                     "user_id": {"$first": "$user_id"},
                 }
             },
+            {"$sort": {"transaction_date": -1}},
             {"$skip": skip},
             {"$limit": limit},
         ]
-        return await self.collection.aggregate(pipeline).to_list(length=None)
+
+        async with self.collection.aggregate(pipeline) as cursor:
+            return await cursor.to_list(length=None)
 
     async def calculate_expenses(
         self, timestamp_start: datetime, timestamp_end: datetime, user_id: ObjectId
-    ) -> float:
+    ):
         pipeline = [
             {
                 "$match": {
@@ -97,7 +72,7 @@ class TransactionsDAO:
             {"$unwind": "$items"},
             {
                 "$group": {
-                    "_id": "null",
+                    "_id": {"category": "$items.category"},
                     "total_price": {
                         "$sum": {
                             "$multiply": [
@@ -108,7 +83,27 @@ class TransactionsDAO:
                     },
                 }
             },
+            {
+                "$group": {
+                    "_id": None,
+                    "total_price": {"$sum": "$total_price"},
+                    "categories": {
+                        "$push": {
+                            "category": "$_id.category",
+                            "price": "$total_price",
+                        }
+                    },
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "total_price": 1,
+                    "categories": 1,
+                }
+            },
         ]
 
-        if result := await self.collection.aggregate(pipeline).to_list(length=None):
-            return result[0]["total_price"]
+        async with self.collection.aggregate(pipeline) as cursor:
+            if result := await cursor.to_list(length=1):
+                return result[0]
