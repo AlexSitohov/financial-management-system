@@ -1,11 +1,7 @@
 from functools import wraps
 from bson.json_util import _json_convert
 
-from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorCursor
-
-from bson.errors import InvalidId
-from fastapi import HTTPException, Header, Path
 
 
 async def _serialize_dict(document: dict):

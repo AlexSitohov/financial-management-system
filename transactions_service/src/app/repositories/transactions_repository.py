@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.core.config import mongo_db_name, mongo_collection_name
 from bson import ObjectId
 
@@ -71,4 +73,11 @@ class TransactionsRepository:
                     {"deleted": {"$ne": True}},
                 ]
             },
+        )
+
+    async def calculate_expenses(
+        self, timestamp_start: datetime, timestamp_end: datetime, user_id: ObjectId
+    ):
+        return await self.transactions_dao.calculate_expenses(
+            timestamp_start, timestamp_end, user_id
         )

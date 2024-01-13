@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -11,22 +13,6 @@ class TransactionsDAO:
         self.mongo_client = mongo_client
         self.database = mongo_client.get_database(mongo_db_name)
         self.collection = self.database.get_collection(mongo_collection_name)
-
-    # async def find_all(self, user_id: ObjectId, limit: int, skip: int):
-    #     return (
-    #         self.collection.find(
-    #             filter=(
-    #                 {
-    #                     "$and": [
-    #                         {"user_id": user_id},
-    #                         {"deleted": {"$ne": True}},
-    #                     ]
-    #                 }
-    #             ),
-    #         )
-    #         .limit(limit)
-    #         .skip(skip)
-    #     )
 
     async def find_all(self, user_id: ObjectId, limit: int, skip: int):
         pipeline = [
@@ -93,3 +79,36 @@ class TransactionsDAO:
             {"$limit": limit},
         ]
         return await self.collection.aggregate(pipeline).to_list(length=None)
+
+    async def calculate_expenses(
+        self, timestamp_start: datetime, timestamp_end: datetime, user_id: ObjectId
+    ) -> float:
+        pipeline = [
+            {
+                "$match": {
+                    "user_id": user_id,
+                    "deleted": {"$ne": True},
+                    "transaction_date": {
+                        "$gte": timestamp_start,
+                        "$lt": timestamp_end,
+                    },
+                }
+            },
+            {"$unwind": "$items"},
+            {
+                "$group": {
+                    "_id": "null",
+                    "total_price": {
+                        "$sum": {
+                            "$multiply": [
+                                "$items.price",
+                                {"$ifNull": ["$items.qty", 1]},
+                            ]
+                        }
+                    },
+                }
+            },
+        ]
+
+        if result := await self.collection.aggregate(pipeline).to_list(length=None):
+            return result[0]["total_price"]
