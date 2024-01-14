@@ -1,11 +1,7 @@
 from functools import wraps
 from bson.json_util import _json_convert
 
-from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorCursor
-
-from bson.errors import InvalidId
-from fastapi import HTTPException, Header, Path
 
 
 async def _serialize_dict(document: dict):
@@ -37,14 +33,3 @@ def mongo_serializer(func):
             return await _serialize_list(result)
 
     return wrapper_serialize
-
-
-async def validate_object_id(transaction_id: str = Path(...)) -> ObjectId:
-    try:
-        return ObjectId(transaction_id)
-    except (TypeError, InvalidId):
-        raise HTTPException(status_code=400, detail="Неверный формат ObjectId.")
-
-
-async def get_object_id_from_header(user_id: str = Header(...)) -> ObjectId:
-    return await validate_object_id(user_id)

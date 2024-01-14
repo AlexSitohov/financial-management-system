@@ -16,7 +16,12 @@ from app.dependencies import get_item_category
 transactions_router = APIRouter(tags=["Transactions"], prefix="/transactions/api/v1")
 
 
-@transactions_router.post("/transactions", status_code=201)
+@transactions_router.post(
+    "/transactions",
+    status_code=201,
+    response_model=TransactionModel.GET,
+    response_model_exclude_none=True,
+)
 async def create_transaction(
     transaction_dto: TransactionModel.CREATE,
     user_id: ObjectId = Depends(get_object_id_from_header),
@@ -27,7 +32,11 @@ async def create_transaction(
     return await transactions_repository.create_one(transaction_dto, user_id)
 
 
-@transactions_router.get("/transactions")
+@transactions_router.get(
+    "/transactions",
+    response_model=list[TransactionModel.GET],
+    response_model_exclude_none=True,
+)
 async def find_transactions(
     user_id: ObjectId = Depends(get_object_id_from_header),
     category: ItemsCategory | None = Depends(get_item_category),
@@ -37,7 +46,11 @@ async def find_transactions(
         provide_transactions_repository_stub
     ),
 ):
-    return await transactions_repository.find_all(user_id, category, limit, skip)
+    transactions = await transactions_repository.find_all(
+        user_id, category, limit, skip
+    )
+
+    return transactions
 
 
 @transactions_router.delete("/transactions/{transaction_id}", status_code=204)
@@ -51,7 +64,11 @@ async def delete_transaction(
     await transactions_repository.delete_one(transaction_id, user_id)
 
 
-@transactions_router.get("/transactions/{transaction_id}")
+@transactions_router.get(
+    "/transactions/{transaction_id}",
+    response_model=TransactionModel.GET,
+    response_model_exclude_none=True,
+)
 async def find_transaction(
     transaction_id: ObjectId = Depends(validate_object_id),
     user_id: ObjectId = Depends(get_object_id_from_header),

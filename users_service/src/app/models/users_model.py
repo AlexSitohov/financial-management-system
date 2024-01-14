@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from bson import ObjectId
 from pydantic import BaseModel, Field
 
 
@@ -17,7 +18,13 @@ class UsersModel:
             from_attribute = True
 
     class GET(Base):
-        id: str = Field(alias="_id")
+        id: ObjectId = Field(alias="_id")
+
+        class Config:
+            arbitrary_types_allowed = True
+            json_encoders = {
+                ObjectId: lambda x: str(x),
+            }
 
     class CREATE(Base):
         ...
@@ -25,3 +32,14 @@ class UsersModel:
     class LOGIN(BaseModel):
         email: str
         password: str
+
+    class GETUserAfterLogin(BaseModel):
+        email: str
+        password: str
+        id: ObjectId = Field(alias="_id")
+
+        class Config:
+            arbitrary_types_allowed = True
+            json_encoders = {
+                ObjectId: lambda x: str(x),
+            }

@@ -5,7 +5,6 @@ from app.core.config import mongo_db_name, mongo_collection_name
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.dblayer.serializer import mongo_serializer
 
 from app.core.hash import hash_password, verify_password
 from app.models.users_model import UsersModel
@@ -17,7 +16,6 @@ class UsersRepository:
         self.database = mongo_client.get_database(mongo_db_name)
         self.collection = self.database.get_collection(mongo_collection_name)
 
-    @mongo_serializer
     async def register(self, user_dto: UsersModel.CREATE):
         async with await self.mongo_client.start_session() as session:
             user_dto.password = await hash_password(user_dto.password)
@@ -30,15 +28,14 @@ class UsersRepository:
                 filter={"_id": inserted_id}, session=session
             )
 
-    @mongo_serializer
     async def find_all(self, limit: int, skip: int):
         return (
-            self.collection.find(filter={"deleted": {"$ne": True}})
+            await self.collection.find(filter={"deleted": {"$ne": True}})
             .limit(limit)
             .skip(skip)
+            .to_list(length=None)
         )
 
-    @mongo_serializer
     async def delete_one(self, user_id: ObjectId):
         await self.collection.update_one(
             filter=(
@@ -52,7 +49,6 @@ class UsersRepository:
             update={"$set": {"deleted": True}},
         )
 
-    @mongo_serializer
     async def find_one(self, user_id: ObjectId):
         return await self.collection.find_one(
             filter=(
@@ -65,7 +61,6 @@ class UsersRepository:
             )
         )
 
-    @mongo_serializer
     async def login(self, user_dto: UsersModel.LOGIN):
         user = await self.collection.find_one(
             filter={"email": user_dto.email, "deleted": {"$ne": True}},

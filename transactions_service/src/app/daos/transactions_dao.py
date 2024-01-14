@@ -35,7 +35,7 @@ class TransactionsDAO:
                     "_id": "$_id",
                     "transaction_date": {"$first": "$transaction_date"},
                     "items": {"$push": "$items"},
-                    "totalAmount": {
+                    "total_amount": {
                         "$sum": {
                             "$multiply": [
                                 "$items.price",

@@ -5,7 +5,6 @@ from bson import ObjectId
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.dblayer.serializer import mongo_serializer
 
 from app.models.transaction_model import TransactionModel
 
@@ -23,7 +22,6 @@ class TransactionsRepository:
         self.database = mongo_client.get_database(mongo_db_name)
         self.collection = self.database.get_collection(mongo_collection_name)
 
-    @mongo_serializer
     async def create_one(
         self, transactions_dto: TransactionModel.CREATE, user_id: ObjectId
     ):
@@ -39,13 +37,11 @@ class TransactionsRepository:
                 filter={"_id": transaction_id}, session=session
             )
 
-    @mongo_serializer
     async def find_all(
         self, user_id: ObjectId, category: ItemsCategory | None, limit: int, skip: int
     ):
         return await self.transactions_dao.find_all(user_id, category, limit, skip)
 
-    @mongo_serializer
     async def delete_one(self, transaction_id: ObjectId, user_id: ObjectId):
         await self.collection.update_one(
             filter={
@@ -58,7 +54,6 @@ class TransactionsRepository:
             update={"$set": {"deleted": True}},
         )
 
-    @mongo_serializer
     async def find_one(self, transaction_id: ObjectId, user_id: ObjectId):
         return await self.collection.find_one(
             filter={
